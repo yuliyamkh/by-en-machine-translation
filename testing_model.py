@@ -58,25 +58,9 @@ if __name__ == '__main__':
 
     # Load model
     model = load_model("model.h5")
-    for i, source in enumerate(train_X):
+
+    # Generate predictions
+    for i, source in enumerate(test_X):
         source = source.reshape((1, source.shape[0]))
         translation = predict_sequence(model, by_tokenizer, source)
         print(translation)
-    exit()
-
-    example = test_X.reshape((test_X.shape[0], test_X.shape[1]))
-    preds = model.predict(example)
-    predicted_classes = np.argmax(preds, axis=1)
-    print(predicted_classes.shape)
-    for prediction in predicted_classes:
-        phrase = []
-        for i, w in enumerate(prediction):
-            if i > 0:
-                word = get_word_for_id(i, by_tokenizer)
-                print(word)
-                phrase.append(word)
-        print(' '.join(phrase))
-        exit()
-
-    preds = model.predict(test_X.reshape((test_X.shape[0], test_X.shape[1])))
-    # predicted_classes = np.argmax(preds, axis=1)

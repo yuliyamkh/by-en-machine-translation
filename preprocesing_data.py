@@ -85,7 +85,7 @@ if __name__ == '__main__':
     raw_dataset = load_preprocessed_data("data/english-belarusian.pkl")
 
     # Reduce dataset size
-    n_pairs = 1000
+    n_pairs = 3000
     dataset = raw_dataset[:n_pairs, :]
     print(f"Number of phrase pairs in the reduced dataset: {len(dataset)}")
 
@@ -95,23 +95,7 @@ if __name__ == '__main__':
     print(f"Shuffled dataset: {dataset}")
 
     # Split the shuffled dataset into train and test sets
-    train, test = train_test_split(dataset)
+    train, test = train_test_split(dataset, test_ratio=0.1)
     save_preprocessed_data(dataset, 'english-belarusian-both.pkl')
     save_preprocessed_data(train, 'english-belarusian-train.pkl')
     save_preprocessed_data(test, 'english-belarusian-test.pkl')
-    exit()
-
-    eng_docs = preprocess_docs[:, 0]
-    by_docs = preprocess_docs[:, 1]
-
-    max_eng_seq_length, max_by_seq_length = get_max_seq_length(preprocess_docs)
-    print("Max English sequence length: ", max_eng_seq_length,
-          "\nMax Belarusian sequence length: ", max_by_seq_length)
-
-    eng_tokenizer = tokenize(eng_docs)
-    eng_vocab_size = len(eng_tokenizer.word_index) + 1
-
-    by_tokenizer = tokenize(by_docs)
-    by_vocab_size = len(by_tokenizer.word_index) + 1
-    print("English vocabulary size: ", eng_vocab_size,
-          "\nBelarusian vocabulary size: ", by_vocab_size)

@@ -3,10 +3,13 @@ import numpy as np
 import keras.src.preprocessing.text
 from keras.preprocessing.text import Tokenizer
 from keras.models import Sequential
-from keras.layers import Dense, LSTM, Embedding, RepeatVector
+from keras.layers import Dense, LSTM, Dropout, Embedding, RepeatVector
 from keras.utils import to_categorical, plot_model
 from keras.callbacks import ModelCheckpoint
+from keras.regularizers import l2
 from keras.preprocessing.sequence import pad_sequences
+from keras.optimizers import Adam
+import matplotlib.pyplot as plt
 
 
 def create_tokenizer(lines: np.ndarray) -> keras.src.preprocessing.text.Tokenizer:
@@ -61,12 +64,27 @@ def define_model(input_vocab, output_vocab,
 
     model = Sequential()
     model.add(Embedding(input_vocab, units, input_length=in_length, mask_zero=True))
-    model.add(LSTM(units))
+    model.add(LSTM(units, kernel_regularizer=l2(0.01)))
+    model.add(Dropout(0.2))
     model.add(RepeatVector(out_length))
     model.add(LSTM(units, return_sequences=True))
     model.add(Dense(output_vocab, activation='softmax'))
 
     return model
+
+
+def plot_training_and_validation_loss(mdl):
+    """
+    Plots training and validation loss.
+    """
+    history = mdl.history.history
+    plt.plot(history['loss'], label='Training Loss')
+    plt.plot(history['val_loss'], label='Validation Loss')
+    plt.title('Training and Validation Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.show()
 
 
 if __name__ == '__main__':
@@ -103,9 +121,9 @@ if __name__ == '__main__':
     test_y = encode_output(test_y, by_vocab_size)
 
     # Compile model
-    model = define_model(eng_vocab_size, by_vocab_size, max_eng_seq_length, max_by_seq_length, units=25)
-
-    model.compile(optimizer='adam', loss='categorical_crossentropy')
+    model = define_model(eng_vocab_size, by_vocab_size, max_eng_seq_length, max_by_seq_length, units=128)
+    optimizer = Adam(learning_rate=0.001)
+    model.compile(optimizer=optimizer, loss='categorical_crossentropy')
 
     # Summarize defined model
     print(model.summary())
@@ -113,5 +131,18 @@ if __name__ == '__main__':
 
     # Fit model
     filename = 'model.h5'
-    checkpoint = ModelCheckpoint(filename, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
-    model.fit(train_X, train_y, epochs=1000, batch_size=3, validation_split=0.1, validation_data=(test_X, test_y), callbacks=[checkpoint], verbose=2, shuffle=True)
+    checkpoint = ModelCheckpoint(filename,
+                                 monitor='val_loss',
+                                 verbose=1,
+                                 save_best_only=True,
+                                 mode='min')
+
+    model.fit(train_X, train_y,
+              epochs=100,
+              batch_size=64,
+              validation_data=(test_X, test_y),
+              callbacks=[checkpoint],
+              verbose=1,
+              shuffle=True)
+
+    plot_training_and_validation_loss(mdl=model)
