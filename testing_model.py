@@ -60,7 +60,12 @@ if __name__ == '__main__':
     model = load_model("model.h5")
 
     # Generate predictions
+    predictions = list()
     for i, source in enumerate(test_X):
         source = source.reshape((1, source.shape[0]))
         translation = predict_sequence(model, by_tokenizer, source)
-        print(translation)
+        predictions.append(translation)
+
+    # Put the source (English) and translated target (Belarusian) sentences into a dataframe
+    predictions_df = pd.DataFrame({'source_en': test[:, 0], 'target_by': predictions})
+    print(predictions_df)

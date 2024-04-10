@@ -85,14 +85,15 @@ if __name__ == '__main__':
     raw_dataset = load_preprocessed_data("data/english-belarusian.pkl")
 
     # Reduce dataset size
-    n_pairs = 3000
+    n_pairs = 3883
     dataset = raw_dataset[:n_pairs, :]
     print(f"Number of phrase pairs in the reduced dataset: {len(dataset)}")
+    print(f"\nExample 1: {dataset[0]}")
 
     # Shuffle the dataset
     np.random.seed(42)
     np.random.shuffle(dataset)
-    print(f"Shuffled dataset: {dataset}")
+    print(f"\nShuffled dataset: {dataset}")
 
     # Split the shuffled dataset into train and test sets
     train, test = train_test_split(dataset, test_ratio=0.1)

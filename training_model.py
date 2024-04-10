@@ -8,7 +8,7 @@ from keras.utils import to_categorical, plot_model
 from keras.callbacks import ModelCheckpoint
 from keras.regularizers import l2
 from keras.preprocessing.sequence import pad_sequences
-from keras.optimizers import Adam
+from keras.optimizers import RMSprop
 import matplotlib.pyplot as plt
 
 
@@ -64,7 +64,7 @@ def define_model(input_vocab, output_vocab,
 
     model = Sequential()
     model.add(Embedding(input_vocab, units, input_length=in_length, mask_zero=True))
-    model.add(LSTM(units, kernel_regularizer=l2(0.01)))
+    model.add(LSTM(units, kernel_regularizer=l2(0.1)))
     model.add(Dropout(0.2))
     model.add(RepeatVector(out_length))
     model.add(LSTM(units, return_sequences=True))
@@ -113,17 +113,18 @@ if __name__ == '__main__':
     # Prepare training data
     train_X = encode_sequences(eng_tokenizer, max_eng_seq_length, train[:, 0])
     train_y = encode_sequences(by_tokenizer, max_by_seq_length, train[:, 1])
-    train_y = encode_output(train_y, by_vocab_size)
+    # train_y = encode_output(train_y, by_vocab_size)
 
     # Prepare validation data
     test_X = encode_sequences(eng_tokenizer, max_eng_seq_length, test[:, 0])
     test_y = encode_sequences(by_tokenizer, max_by_seq_length, test[:, 1])
-    test_y = encode_output(test_y, by_vocab_size)
+    # test_y = encode_output(test_y, by_vocab_size)
 
     # Compile model
-    model = define_model(eng_vocab_size, by_vocab_size, max_eng_seq_length, max_by_seq_length, units=128)
-    optimizer = Adam(learning_rate=0.001)
-    model.compile(optimizer=optimizer, loss='categorical_crossentropy')
+    model = define_model(eng_vocab_size, by_vocab_size, max_eng_seq_length, max_by_seq_length, units=256)
+    # optimizer = Adam(lr=0.001)
+    optimizer = RMSprop(lr=0.00001)
+    model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy')
 
     # Summarize defined model
     print(model.summary())
@@ -139,7 +140,7 @@ if __name__ == '__main__':
 
     model.fit(train_X, train_y,
               epochs=100,
-              batch_size=64,
+              batch_size=128,
               validation_data=(test_X, test_y),
               callbacks=[checkpoint],
               verbose=1,
